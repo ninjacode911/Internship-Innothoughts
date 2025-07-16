@@ -5,3 +5,7 @@ Working of simple Method:
 2]To change the aspect ratio: same process as step 1
 
 3] To download the file : press execute workflow -> click convert to file -> press download on the right column
+
+website: https://api.together.ai/playground/black-forest-labs/FLUX.1-schnell-Free
+
+reference video: https://www.youtube.com/watch?v=TqKfTDxHMZ8
