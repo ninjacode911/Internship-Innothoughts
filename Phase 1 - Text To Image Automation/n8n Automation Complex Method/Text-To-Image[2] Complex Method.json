@@ -1,0 +1,450 @@
+{
+  "name": "Text-To-Image[2]",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        224,
+        608
+      ],
+      "id": "6632777e-f8c2-4af0-8cbb-952724630f45",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-chat-v3-0324:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        912
+      ],
+      "id": "82d73f74-a4f5-4034-9f49-b3addfccad45",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OSHVfY7D6kqqptKl",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "014f8eb5-5855-4864-94b5-8c20d818939e",
+              "name": "prompt",
+              "value": "=3D ultra realistic of {{ $json.text }} 9:16 ratio, 4K",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        608
+      ],
+      "id": "fff2c1a8-a95b-4eb8-9f2b-45e31f07420b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"animal\": { \"type\": \"string\" },\n      \"style\": { \"type\": \"string\" }\n    },\n    \"required\": [\"animal\", \"style\"]\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        720
+      ],
+      "id": "f6586be8-be50-4e94-92c2-6944933b8d7d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        400
+      ],
+      "id": "f249186e-b964-40fa-bcf7-7ff6ca5d66a8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n  \"prompt\": {{ JSON.stringify($json.prompt) }},\n  \"width\": 576,\n  \"height\": 1024,\n  \"steps\": 4,\n  \"n\": 1,\n  \"response_format\": \"b64_json\",\n  \"stop\": []\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        624
+      ],
+      "id": "3aff417e-7495-455d-a269-40643840e45c",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kVrXsp9kysEIz0Pv",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        608
+      ],
+      "id": "4aa42e65-d05c-4344-9829-cf9202f342f3",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2352,
+        624
+      ],
+      "id": "6027b1fb-3535-48af-af41-b7297768f555",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2512,
+        624
+      ],
+      "id": "af8313b8-5286-477a-b8a8-5f69d6f497e4",
+      "name": "Wait",
+      "webhookId": "74276acc-e402-42a8-9cd5-dffc3cb51c58"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=create 5 different variations of the following Animal: {{ $json.Animal }} in the Style of {{ $json.Style }}\n\n",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        688,
+        608
+      ],
+      "id": "336e5108-1c09-4345-942a-5fe56bb3ab9a",
+      "name": "LLM - Variations Generator"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Animal: {{ $json.animal }}\nStyle: {{ $json.style }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Overview  \nYou are a master image prompt generator specialized in crafting detailed, high-quality prompts for advanced image models like Flux. Your task is to generate vivid, well-structured prompts that accurately depict an animal dressed in a specified style, with a matching background that complements the theme.\n\n## Instructions:  \n- Clearly describe the animal's appearance, including fur, feathers, or scales.  \n- Specify the outfit and accessories that reflect the given style, ensuring they fit naturally.  \n- Include details about the background that reinforce the style, creating a cohesive scene.  \n- Use rich, descriptive language to enhance visual fidelity.  \n- Avoid generic terms—opt for precise, imaginative descriptions that maximize prompt effectiveness.  \n- Never output quotation marks (\"\") or newlines (\\n)\n\n## Example  \n- Input:  \nAnimal: Fox  \nStyle: Cyberpunk\n\n- Output:  \nA sleek red fox with vibrant fur and piercing blue cybernetic eyes, wearing a futuristic black leather jacket with neon blue accents and glowing circuitry patterns. A high-tech visor covers one eye, displaying holographic data. The fox stands confidently on a rain-slicked city street illuminated by neon signs in Japanese and English. Hovering drones and bustling pedestrians in cybernetic attire add depth to the scene, while distant flying cars streak through the dark, misty skyline."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        1168,
+        608
+      ],
+      "id": "75794a6d-0d0b-4ac6-9caf-1cae918068fd",
+      "name": "LLM Prompt Generator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31a2b3db-78a0-41b8-815f-ffb6c572279d",
+              "name": "base64",
+              "value": "={{ $json.body.data[0].b64_json }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2192,
+        624
+      ],
+      "id": "1966985d-1ef9-4451-af7e-b0b6491503c6",
+      "name": "Set base"
+    },
+    {
+      "parameters": {
+        "content": "\n\nThis workflow generates multiple image variations from prompt ideas created by an LLM, and processes them in a loop. Ideal for bulk creative generation/testing.\n\n1. **Trigger: When clicking ‘Test workflow’** – Manually initiated by user.\n2. **LLM Variations Generator** – Generates multiple prompt ideas using a language model.\n3. **Split Out** – Breaks the output into individual prompts for processing.\n4. **LLM Prompt Generator** – Formats each variation into a proper image generation prompt.\n5. **Edit Fields** – Manual editing or setup before generation.\n6. **Loop Over Items** – Iterates through each prompt.\n    - For each:\n      7. **HTTP Request** – Sends the prompt to Together.ai to generate an image.\n      8. **Set base** – Stores the base64 image output.\n      9. **Convert to File** – Converts base64 to a downloadable image file.\n     10. **Wait** – Delays next iteration to control rate or API limits. 6 Images/minute with Flux Free version\n11. **Structured Output Parser** *(optional)* – Parses structured response (if needed).\n12. **OpenRouter Chat Model** *(optional)* – Adds advanced AI logic to refine prompts or parse outputs.\n\n## Created By Navnit A \ngithub: https://github.com/ninjacode911",
+        "height": 496,
+        "width": 980,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cdddab86-1f02-40eb-bb70-a4720a471c5b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "157f4c20-aadd-47ef-a29c-5e7147ad5867",
+              "name": "Animal",
+              "value": "Mouse",
+              "type": "string"
+            },
+            {
+              "id": "ee3937b7-0f44-4451-ab76-70aa376cf258",
+              "name": "Style",
+              "value": "Disney",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        608
+      ],
+      "id": "d5811095-1672-450b-82fd-ef8b6eddd314",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "## Created By Navnit A \ngithub: https://github.com/ninjacode911",
+        "height": 96,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        192
+      ],
+      "id": "14404c57-2282-4324-87c5-2f2ae2fe3f54",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM Prompt Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "LLM - Variations Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LLM - Variations Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "LLM Prompt Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM - Variations Generator": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Prompt Generator": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set base": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "LLM - Variations Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "202e0a00-b3a2-4d12-81e9-ad1496f7d44b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f12f3f0db12167cf76d5fd237fe5e79b5533871d8de4fb6ae9ed9c4858143b4c"
+  },
+  "id": "f2i7dLE7EyRVlU6Z",
+  "tags": [
+    {
+      "name": "Text to Image",
+      "id": "NTEzQdYReDvKPgHL",
+      "createdAt": "2025-07-15T10:56:11.805Z",
+      "updatedAt": "2025-07-15T10:56:11.805Z"
+    }
+  ]
+}

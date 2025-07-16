@@ -1,0 +1,135 @@
+{
+  "name": "Text-To-Image[1]- Simple Method",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n\"prompt\": \"[a jaguar fpace car]\",\n\"width\": 1024,\n\"height\": 768,\n\"steps\": 4,\n\"n\": 1,\n\"response_format\": \"b64_json\",\n\"stop\": []\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        368,
+        48
+      ],
+      "id": "2f4b3384-5ca7-43bc-b3d3-668cad25752c",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kVrXsp9kysEIz0Pv",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ee5a866-7fe1-45be-8e1a-60a13ee3fbf8",
+              "name": "base64",
+              "value": "={{ $json.data[0].b64_json }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        48
+      ],
+      "id": "05fed59e-927c-48a4-b208-8889ce77bf59",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {
+          "fileName": "Image"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        48
+      ],
+      "id": "2197e779-fc3e-4249-bbab-82e2c52c7301",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        48
+      ],
+      "id": "444e4a9b-028a-4a23-9322-34074daa5439",
+      "name": "When clicking ‘Test workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "31c2dd6e-ae4c-4973-83e4-75ce0e31117c",
+  "meta": {
+    "instanceId": "f12f3f0db12167cf76d5fd237fe5e79b5533871d8de4fb6ae9ed9c4858143b4c"
+  },
+  "id": "0F7DZHUDYMPaydQI",
+  "tags": [
+    {
+      "name": "Text to Image",
+      "id": "NTEzQdYReDvKPgHL",
+      "createdAt": "2025-07-15T10:56:11.805Z",
+      "updatedAt": "2025-07-15T10:56:11.805Z"
+    }
+  ]
+}
