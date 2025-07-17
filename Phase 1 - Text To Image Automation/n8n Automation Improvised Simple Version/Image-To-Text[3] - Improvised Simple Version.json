@@ -1,0 +1,155 @@
+{
+  "name": "Image-To-Text[3] - Improvised Simple Version",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -96
+      ],
+      "id": "9cd07697-fc2b-4bb9-8dc3-adebfc412f7c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n\"prompt\": \"[a man sitting in a bedroom at the edge of a bed, disappointed]\",\n\"width\": 1024,\n\"height\": 768,\n\"steps\": 4,\n\"n\": 1,\n\"response_format\": \"b64_json\",\n\"stop\": []\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        128,
+        -96
+      ],
+      "id": "d863a26a-ad8f-4550-a700-09d02521fb15",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "6X4i4vkxBOvwSg7B",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee6ce04e-c959-4e2f-bbbd-61e86b6b0a35",
+              "name": "base64",
+              "value": "={{ $json.data[0].b64_json }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -96
+      ],
+      "id": "e5f05841-88b8-4c5d-8d4c-bc51575485f4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        -96
+      ],
+      "id": "92d579dd-035f-4676-9b2f-441e2318fe2b",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "C:/Users/Navnit A/Downloads/test/file.png",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        752,
+        -96
+      ],
+      "id": "86b86b4d-92b6-4691-a58c-a5ec4472b245",
+      "name": "Read/Write Files from Disk"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "887db008-aa9c-4bca-91af-22d8914af60d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f12f3f0db12167cf76d5fd237fe5e79b5533871d8de4fb6ae9ed9c4858143b4c"
+  },
+  "id": "mgYfHFTlTTOODLbm",
+  "tags": []
+}
